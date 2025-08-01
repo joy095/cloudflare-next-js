@@ -1,85 +1,73 @@
-import { GetStaticProps } from 'next';
-import ImageGallery from '@/components/ImageGallery';
+import Image from 'next/image';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
-export const runtime = "experimental-edge";
-
-type Image = {
+type GalleryImage = {
   id: string;
-  src: string;
-  alt: string;
+  download_url: string;
+  author: string;
 };
 
-type HomeProps = {
-  images: Image[];
-};
+export default function Home() {
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
 
-export default function Home({ images }: HomeProps) {
+  const loadImages = useCallback(async () => {
+    if (!hasMore) return;
+
+    const res = await fetch(`https://picsum.photos/v2/list?page=${page}&limit=20`);
+    const data: GalleryImage[] = await res.json();
+
+    setImages((prev) => [...prev, ...data]);
+    setHasMore(data.length > 0);
+  }, [page, hasMore]);
+
+  useEffect(() => {
+    loadImages();
+  }, [page, loadImages]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    const current = loaderRef.current;
+    if (current) observer.observe(current);
+
+    return () => {
+      if (current) observer.unobserve(current);
+    };
+  }, [hasMore]);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
-      <div className="container mx-auto px-4">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Dynamic Image Gallery</h1>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Images loaded from external URLs
-          </p>
-        </header>
+    <div className="p-6 max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6 text-center">Gallery</h1>
 
-        {images.length > 0 ? (
-          <ImageGallery images={images} />
-        ) : (
-          <div className="text-center py-20">
-            <div className="text-5xl mb-4">📷</div>
-            <h2 className="text-2xl font-semibold text-gray-700 mb-2">No Images Found</h2>
-            <p className="text-gray-600">
-              Add image URLs to the image list in getStaticProps
-            </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {images.map((img) => (
+          <div key={img.id} className="relative w-full aspect-video rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+            <Image
+              src={`https://picsum.photos/id/${img.id}/600/400`}
+              alt={img.author}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </div>
-        )}
+        ))}
       </div>
+
+      {hasMore && (
+        <div ref={loaderRef} className="text-center py-10 text-gray-500">
+          Loading more...
+        </div>
+      )}
     </div>
   );
 }
-
-// Sample external image URLs - replace with your own image sources
-export const getStaticProps: GetStaticProps = async () => {
-  // Sample image URLs - replace with your own sources
-  const imageUrls = [
-    {
-      id: '1',
-      src: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      alt: 'Mountain Landscape'
-    },
-    {
-      id: '2',
-      src: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      alt: 'Ocean Sunset'
-    },
-    {
-      id: '3',
-      src: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      alt: 'Forest Path'
-    },
-    {
-      id: '4',
-      src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      alt: 'Mountain Peak'
-    },
-    {
-      id: '5',
-      src: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      alt: 'Lakeside View'
-    },
-    {
-      id: '6',
-      src: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80',
-      alt: 'Nature Panorama'
-    }
-  ];
-
-  return {
-    props: {
-      images: imageUrls,
-    },
-    revalidate: 60, // Revalidate at most once every 60 seconds
-  };
-};
