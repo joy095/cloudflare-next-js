@@ -1,6 +1,8 @@
 import { GetStaticProps } from 'next';
 import ImageGallery from '@/components/ImageGallery';
 
+export const runtime = "edge";
+
 type Image = {
   id: string;
   src: string;
