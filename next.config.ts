@@ -13,17 +13,21 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
   images: {
-    domains: [
-      'images.unsplash.com',
-      'picsum.photos',
-      'source.unsplash.com',
-      // Add any other domains you'll be fetching images from
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'source.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
   },
 };
-
-if (process.env.NODE_ENV === 'development') {
-  await setupDevPlatform();
-}
 
 export default nextConfig;
