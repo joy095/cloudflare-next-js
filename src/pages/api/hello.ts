@@ -1,12 +1,12 @@
-import type { NextRequest } from 'next/server'
-import { getRequestContext } from '@cloudflare/next-on-pages'
+// import type { NextRequest } from 'next/server'
+// import { getRequestContext } from '@cloudflare/next-on-pages'
 
 export const config = {
   runtime: 'edge',
 }
 
-export default async function handler(req: NextRequest) {
-  let responseText = 'Hello World'
+export default async function handler() {
+  const responseText = 'Hello World'
 
   // In the edge runtime you can use Bindings that are available in your application
   // (for more details see:

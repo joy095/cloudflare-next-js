@@ -1,7 +1,7 @@
 import { GetStaticProps } from 'next';
 import ImageGallery from '@/components/ImageGallery';
 
-export const runtime = "edge";
+export const runtime = "experimental-edge";
 
 type Image = {
   id: string;
